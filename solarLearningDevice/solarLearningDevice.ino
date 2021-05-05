@@ -10,7 +10,7 @@ int keyIndex = 0;
 WiFiClient  client;
 unsigned long myChannelNumber = SECRET_CH_ID;
 const char * myWriteAPIKey = SECRET_WRITE_APIKEY;
-int delayLoops = 32;
+int delayLoops = 64;
 
 // Solar tracking variables
 Servo servo270;  // create servo object to control a servo
@@ -57,10 +57,8 @@ void setup() {
   servo270.write(pos270);
   delay(2000); // give time for it to get to atrating position
   Serial.begin(9600);
-}
 
-void loop() {
-  // Connect or reconnect to WiFi
+  // Connect to WiFi
   if(WiFi.status() != WL_CONNECTED){
     Serial.print("Attempting to connect to SSID: ");
     Serial.println(SECRET_SSID);
@@ -71,7 +69,9 @@ void loop() {
     } 
     Serial.println("\nConnected.");
   }
+}
 
+void loop() {
   // solar tracking
   reading = 0;
   leftAvg = 0;
@@ -101,14 +101,20 @@ void loop() {
     rightAvg += pRight;
     topAvg += pTop;
     bottomAvg += pBottom;
+
+    Serial.println(pLeft);
+    Serial.println(pRight);
+    Serial.println(pTop);
+    Serial.println(pBottom);
+    Serial.println();
     
     if ((pLeft - pRight) > xaccuracy) {
-      servo360.write(180);
+      servo360.write(0);
       delay(40);
       servo360.write(90);
     }
     else if ((pRight - pLeft) > xaccuracy) {
-      servo360.write(0);
+      servo360.write(180);
       delay(40);
       servo360.write(90);
     }
@@ -127,7 +133,10 @@ void loop() {
       facingSun = false;
       servo270.write(pos270);
     }
-    delay(500);
+
+    
+    
+    delay(250);
   }
 
   // voltage sensor reading
@@ -139,7 +148,7 @@ void loop() {
   rightAvg = rightAvg/delayLoops;
   topAvg = topAvg/delayLoops;
   bottomAvg = bottomAvg/delayLoops;
-
+  
   // Write to ThingSpeak
   ThingSpeak.setField(1, voltage);
   ThingSpeak.setField(2, leftAvg);
